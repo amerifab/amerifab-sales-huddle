@@ -93,3 +93,55 @@ Write in a professional but warm tone. Be specific and actionable. If there's li
   const textBlock = message.content.find((block) => block.type === "text")
   return textBlock ? textBlock.text : "Unable to generate story."
 }
+
+interface UpdateStoryData {
+  customerName: string
+  existingStory: string
+  newInsights: CustomerInsight[]
+}
+
+export async function updateCustomerStory(data: UpdateStoryData): Promise<string> {
+  const formatInsights = (insights: CustomerInsight[]) =>
+    insights.map((i) => `- [${i.type.toUpperCase()}] ${i.content} (${i.rep || "Unknown"}, ${new Date(i.date).toLocaleDateString()})`).join("\n")
+
+  const prompt = `You are a strategic sales analyst helping AmeriFab Inc. maintain customer intelligence narratives.
+
+CUSTOMER: ${data.customerName}
+
+EXISTING STORY:
+${data.existingStory}
+
+---
+
+NEW INSIGHTS ADDED:
+${formatInsights(data.newInsights)}
+
+---
+
+Please revise "The Whole Story" above to incorporate these new insights.
+
+IMPORTANT GUIDELINES:
+- Preserve the existing narrative structure and flow
+- Weave in the new information naturally where it fits best
+- Update relevant sections based on the insight type (context, need, action, or dossier)
+- Don't just append - integrate the new insights thoughtfully
+- If new insights contradict or update old information, reflect the current state
+- Keep the same section headers (Who They Are, Their World Right Now, The Pain We Can Address, Our Opportunity to Obsess, The Trust-Building Path)
+- Maintain the professional but warm tone
+
+Return the complete updated story with all sections.`
+
+  const message = await anthropic.messages.create({
+    model: "claude-sonnet-4-20250514",
+    max_tokens: 1500,
+    messages: [
+      {
+        role: "user",
+        content: prompt,
+      },
+    ],
+  })
+
+  const textBlock = message.content.find((block) => block.type === "text")
+  return textBlock ? textBlock.text : "Unable to update story."
+}

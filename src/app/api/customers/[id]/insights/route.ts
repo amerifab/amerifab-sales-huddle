@@ -1,6 +1,35 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { auth } from "@/lib/auth"
+import { updateCustomerStory } from "@/lib/claude"
+
+// Helper to update story in background (non-blocking)
+async function updateStoryInBackground(customerId: string, customerName: string, existingStory: string, newInsights: Array<{ type: string; content: string; rep?: string }>) {
+  try {
+    const updatedStory = await updateCustomerStory({
+      customerName,
+      existingStory,
+      newInsights: newInsights.map(i => ({
+        type: i.type,
+        content: i.content,
+        rep: i.rep,
+        date: new Date().toISOString(),
+      })),
+    })
+
+    await prisma.customer.update({
+      where: { id: customerId },
+      data: {
+        story: updatedStory,
+        storyGeneratedAt: new Date(),
+      },
+    })
+
+    console.log(`Story updated for customer ${customerName}`)
+  } catch (error) {
+    console.error(`Failed to update story for customer ${customerName}:`, error)
+  }
+}
 
 // POST /api/customers/[id]/insights - Add insight(s) to a customer
 export async function POST(
@@ -25,12 +54,20 @@ export async function POST(
       return NextResponse.json({ error: "Customer not found" }, { status: 404 })
     }
 
+    let newInsights: Array<{ type: string; content: string; rep?: string }> = []
+
     // Handle batch insert (from check-in form)
     if (Array.isArray(body.insights)) {
-      const insights = await prisma.insight.createMany({
-        data: body.insights.map((insight: { type: string; content: string; rep?: string }) => ({
+      newInsights = body.insights.map((insight: { type: string; content: string; rep?: string }) => ({
+        type: insight.type,
+        content: insight.content.trim(),
+        rep: insight.rep || null,
+      }))
+
+      await prisma.insight.createMany({
+        data: newInsights.map(insight => ({
           type: insight.type,
-          content: insight.content.trim(),
+          content: insight.content,
           rep: insight.rep || null,
           customerId,
           createdBy: session.user.id,
@@ -47,6 +84,11 @@ export async function POST(
           },
         },
       })
+
+      // Auto-update story if one exists (non-blocking)
+      if (customer.story && process.env.ANTHROPIC_API_KEY) {
+        updateStoryInBackground(customerId, customer.name, customer.story, newInsights)
+      }
 
       return NextResponse.json(updatedCustomer, { status: 201 })
     }
@@ -71,6 +113,11 @@ export async function POST(
         createdBy: session.user.id,
       },
     })
+
+    // Auto-update story if one exists (non-blocking)
+    if (customer.story && process.env.ANTHROPIC_API_KEY) {
+      updateStoryInBackground(customerId, customer.name, customer.story, [{ type, content: content.trim(), rep }])
+    }
 
     return NextResponse.json(insight, { status: 201 })
   } catch (error) {
