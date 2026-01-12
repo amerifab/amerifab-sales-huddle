@@ -5,7 +5,8 @@ import { Dashboard } from "@/components/Dashboard"
 export default async function HomePage() {
   const session = await auth()
 
-  if (!session) {
+  // Check for valid session with user data (not just truthy - could be error object)
+  if (!session?.user?.email) {
     redirect("/login")
   }
 
