@@ -24,12 +24,17 @@ export default function LoginPage() {
       })
 
       if (result?.error) {
-        setError("Invalid email or password")
-      } else {
+        if (result.error === "Configuration") {
+          setError("Server configuration error. Please contact support.")
+        } else {
+          setError("Invalid email or password")
+        }
+      } else if (result?.ok) {
         router.push("/")
         router.refresh()
       }
-    } catch {
+    } catch (err) {
+      console.error("Login error:", err)
       setError("An error occurred. Please try again.")
     } finally {
       setLoading(false)
