@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import type { CustomerWithInsights } from "@/types"
 
 interface WholeStoryProps {
@@ -9,8 +9,29 @@ interface WholeStoryProps {
 
 export function WholeStory({ customer }: WholeStoryProps) {
   const [story, setStory] = useState<string | null>(null)
+  const [generatedAt, setGeneratedAt] = useState<Date | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [isLoadingInitial, setIsLoadingInitial] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // Load saved story on mount
+  useEffect(() => {
+    const loadSavedStory = async () => {
+      try {
+        const res = await fetch(`/api/customers/${customer.id}/story`)
+        const data = await res.json()
+        if (data.story) {
+          setStory(data.story)
+          setGeneratedAt(data.generatedAt ? new Date(data.generatedAt) : null)
+        }
+      } catch (err) {
+        console.error("Error loading story:", err)
+      } finally {
+        setIsLoadingInitial(false)
+      }
+    }
+    loadSavedStory()
+  }, [customer.id])
 
   const generateStory = async () => {
     setIsLoading(true)
@@ -28,11 +49,22 @@ export function WholeStory({ customer }: WholeStoryProps) {
       }
 
       setStory(data.story)
+      setGeneratedAt(data.generatedAt ? new Date(data.generatedAt) : new Date())
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred")
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    })
   }
 
   const buttonStyle = {
@@ -134,6 +166,15 @@ export function WholeStory({ customer }: WholeStoryProps) {
     return elements
   }
 
+  // Show loading state while fetching saved story
+  if (isLoadingInitial) {
+    return (
+      <div style={{ textAlign: "center", padding: "48px 32px" }}>
+        <div style={{ fontSize: "24px", marginBottom: "16px" }}>Loading...</div>
+      </div>
+    )
+  }
+
   if (story) {
     return (
       <div>
@@ -152,6 +193,11 @@ export function WholeStory({ customer }: WholeStoryProps) {
             </h3>
             <p style={{ fontSize: "14px", color: "#718096", margin: 0 }}>
               AI-generated narrative based on {insightCount} insight{insightCount !== 1 ? "s" : ""}
+              {generatedAt && (
+                <span style={{ marginLeft: "8px", color: "#a0aec0" }}>
+                  • Generated {formatDate(generatedAt)}
+                </span>
+              )}
             </p>
           </div>
           <button
