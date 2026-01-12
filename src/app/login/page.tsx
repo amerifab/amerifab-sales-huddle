@@ -175,8 +175,8 @@ export default function LoginPage() {
 
         {/* Demo credentials */}
         <div className="mt-6 text-center text-white/80 text-sm">
-          <p className="font-medium mb-2">Demo Credentials</p>
-          <p className="text-white/60">soja@amerifab.com / password123</p>
+          <p className="font-medium mb-2">Default Password</p>
+          <p className="text-white/60">AmeriFab2026!</p>
         </div>
       </div>
     </div>
