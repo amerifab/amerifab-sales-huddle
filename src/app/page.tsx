@@ -1,65 +1,324 @@
-import Image from "next/image";
+"use client"
 
-export default function Home() {
+import { useState, useEffect, useCallback } from "react"
+import { useSession } from "next-auth/react"
+import {
+  Header,
+  Sidebar,
+  CustomerDetail,
+  AddCustomerModal,
+  AddInsightModal,
+  CheckInModal,
+  type CustomerFormData,
+  type InsightFormData,
+  type CheckInNotes,
+} from "@/components"
+import type { CustomerWithInsights } from "@/types"
+import { formatDate } from "@/lib/utils"
+
+export default function DashboardPage() {
+  const { data: session } = useSession()
+  const [customers, setCustomers] = useState<CustomerWithInsights[]>([])
+  const [filteredCustomers, setFilteredCustomers] = useState<CustomerWithInsights[]>([])
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [isLoading, setIsLoading] = useState(true)
+
+  // Modal states
+  const [isAddCustomerOpen, setIsAddCustomerOpen] = useState(false)
+  const [isAddInsightOpen, setIsAddInsightOpen] = useState(false)
+  const [isCheckInOpen, setIsCheckInOpen] = useState(false)
+  const [editingCustomer, setEditingCustomer] = useState<CustomerWithInsights | null>(null)
+
+  const selectedCustomer = customers.find((c) => c.id === selectedCustomerId)
+
+  // Fetch customers
+  const fetchCustomers = useCallback(async () => {
+    try {
+      const res = await fetch("/api/customers")
+      if (res.ok) {
+        const data = await res.json()
+        setCustomers(data)
+        setFilteredCustomers(data)
+      }
+    } catch (error) {
+      console.error("Error fetching customers:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchCustomers()
+  }, [fetchCustomers])
+
+  // Filter customers based on search
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredCustomers(customers)
+      return
+    }
+
+    const query = searchQuery.toLowerCase()
+    const filtered = customers.filter(
+      (c) =>
+        c.name.toLowerCase().includes(query) ||
+        c.location?.toLowerCase().includes(query) ||
+        c.rep?.toLowerCase().includes(query) ||
+        c.insights?.some((i) => i.content.toLowerCase().includes(query))
+    )
+    setFilteredCustomers(filtered)
+  }, [searchQuery, customers])
+
+  // Add/Edit customer
+  const handleSaveCustomer = async (data: CustomerFormData) => {
+    try {
+      const url = editingCustomer
+        ? `/api/customers/${editingCustomer.id}`
+        : "/api/customers"
+      const method = editingCustomer ? "PUT" : "POST"
+
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      })
+
+      if (res.ok) {
+        const customer = await res.json()
+        if (editingCustomer) {
+          setCustomers((prev) =>
+            prev.map((c) => (c.id === customer.id ? customer : c))
+          )
+        } else {
+          setCustomers((prev) => [customer, ...prev])
+          setSelectedCustomerId(customer.id)
+        }
+        setIsAddCustomerOpen(false)
+        setEditingCustomer(null)
+      }
+    } catch (error) {
+      console.error("Error saving customer:", error)
+    }
+  }
+
+  // Add insight
+  const handleSaveInsight = async (data: InsightFormData) => {
+    if (!selectedCustomerId) return
+
+    try {
+      const res = await fetch(`/api/customers/${selectedCustomerId}/insights`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      })
+
+      if (res.ok) {
+        fetchCustomers()
+        setIsAddInsightOpen(false)
+      }
+    } catch (error) {
+      console.error("Error saving insight:", error)
+    }
+  }
+
+  // Delete insight
+  const handleDeleteInsight = async (insightId: string) => {
+    try {
+      const res = await fetch(`/api/insights/${insightId}`, {
+        method: "DELETE",
+      })
+
+      if (res.ok) {
+        fetchCustomers()
+      } else {
+        const error = await res.json()
+        alert(error.error || "Failed to delete insight")
+      }
+    } catch (error) {
+      console.error("Error deleting insight:", error)
+    }
+  }
+
+  // Save check-in insights
+  const handleSaveCheckIn = async (notes: CheckInNotes) => {
+    if (!selectedCustomerId) return
+
+    const insights = []
+
+    if (notes.notes1.trim()) {
+      insights.push({ type: "context", content: notes.notes1, rep: notes.rep })
+    }
+    if (notes.notes2.trim()) {
+      insights.push({ type: "need", content: notes.notes2, rep: notes.rep })
+    }
+    if (notes.notes3.trim()) {
+      insights.push({ type: "action", content: notes.notes3, rep: notes.rep })
+    }
+    if (notes.notes4.trim()) {
+      insights.push({ type: "dossier", content: notes.notes4, rep: notes.rep })
+    }
+
+    if (insights.length === 0) return
+
+    try {
+      const res = await fetch(`/api/customers/${selectedCustomerId}/insights`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ insights }),
+      })
+
+      if (res.ok) {
+        fetchCustomers()
+        setIsCheckInOpen(false)
+        alert(`Saved ${insights.length} insight(s) to ${selectedCustomer?.name}'s dossier.`)
+      }
+    } catch (error) {
+      console.error("Error saving check-in:", error)
+    }
+  }
+
+  // Export functions
+  const handleExportText = () => {
+    if (!selectedCustomer) return
+
+    let text = `CUSTOMER DOSSIER: ${selectedCustomer.name}\n`
+    text += `${"=".repeat(50)}\n\n`
+    text += `Location: ${selectedCustomer.location || "N/A"}\n`
+    text += `Primary Contact: ${selectedCustomer.contact || "N/A"}\n`
+    text += `Assigned Rep: ${selectedCustomer.rep || "N/A"}\n`
+    text += `Account Type: ${selectedCustomer.type || "N/A"}\n\n`
+    text += `Notes: ${selectedCustomer.notes || "None"}\n\n`
+    text += `${"─".repeat(50)}\n`
+    text += `INSIGHTS TIMELINE\n`
+    text += `${"─".repeat(50)}\n\n`
+
+    const sortedInsights = [...(selectedCustomer.insights || [])].sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    )
+
+    sortedInsights.forEach((insight) => {
+      text += `[${formatDate(insight.date)}] ${insight.type.toUpperCase()}\n`
+      text += `${insight.content}\n`
+      if (insight.rep) text += `— ${insight.rep}\n`
+      text += `\n`
+    })
+
+    text += `\n${"─".repeat(50)}\n`
+    text += `Generated: ${new Date().toLocaleString()}\n`
+    text += `AmeriFab Inc. Customer Dossier Tracker\n`
+
+    downloadFile(text, `${selectedCustomer.name.replace(/\s+/g, "_")}_dossier.txt`, "text/plain")
+  }
+
+  const handleExportJSON = () => {
+    if (!selectedCustomer) return
+
+    const exportData = {
+      ...selectedCustomer,
+      exportedAt: new Date().toISOString(),
+    }
+
+    downloadFile(
+      JSON.stringify(exportData, null, 2),
+      `${selectedCustomer.name.replace(/\s+/g, "_")}_dossier.json`,
+      "application/json"
+    )
+  }
+
+  const downloadFile = (content: string, filename: string, type: string) => {
+    const blob = new Blob([content], { type })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = filename
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+    <div style={{ minHeight: "100vh", background: "#f7fafc" }}>
+      <Header
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onAddCustomer={() => {
+          setEditingCustomer(null)
+          setIsAddCustomerOpen(true)
+        }}
+        onOpenCheckIn={() => setIsCheckInOpen(true)}
+      />
+
+      <main style={{ maxWidth: "1280px", margin: "0 auto", padding: "32px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "340px 1fr", gap: "32px" }}>
+          <Sidebar
+            customers={filteredCustomers}
+            selectedCustomerId={selectedCustomerId}
+            onSelectCustomer={setSelectedCustomerId}
+            isLoading={isLoading}
+          />
+
+          {selectedCustomer ? (
+            <CustomerDetail
+              customer={selectedCustomer}
+              onEdit={() => {
+                setEditingCustomer(selectedCustomer)
+                setIsAddCustomerOpen(true)
+              }}
+              onRunCheckIn={() => setIsCheckInOpen(true)}
+              onAddInsight={() => setIsAddInsightOpen(true)}
+              onDeleteInsight={handleDeleteInsight}
+              onExportText={handleExportText}
+              onExportJSON={handleExportJSON}
+              currentUserId={session?.user?.id}
+              currentUserRole={session?.user?.role}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          ) : (
+            <div
+              style={{
+                background: "white",
+                borderRadius: "12px",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                padding: "64px 48px",
+                textAlign: "center",
+              }}
+            >
+              <div style={{ fontSize: "64px", marginBottom: "20px", opacity: 0.4 }}>&#128203;</div>
+              <h3 style={{ fontSize: "20px", fontWeight: 600, color: "#4a5568", marginBottom: "8px" }}>
+                Select a customer to view their dossier
+              </h3>
+              <p style={{ fontSize: "15px", color: "#718096" }}>
+                Or add a new customer to get started building insights.
+              </p>
+            </div>
+          )}
         </div>
       </main>
+
+      {/* Modals */}
+      <AddCustomerModal
+        isOpen={isAddCustomerOpen}
+        onClose={() => {
+          setIsAddCustomerOpen(false)
+          setEditingCustomer(null)
+        }}
+        onSave={handleSaveCustomer}
+        editingCustomer={editingCustomer}
+      />
+
+      <AddInsightModal
+        isOpen={isAddInsightOpen}
+        onClose={() => setIsAddInsightOpen(false)}
+        onSave={handleSaveInsight}
+        defaultRep={selectedCustomer?.rep || undefined}
+      />
+
+      <CheckInModal
+        isOpen={isCheckInOpen}
+        onClose={() => setIsCheckInOpen(false)}
+        onSave={handleSaveCheckIn}
+        defaultRep={session?.user?.name || ""}
+        customerName={selectedCustomer?.name}
+      />
     </div>
-  );
+  )
 }
