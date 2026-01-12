@@ -1,16 +1,17 @@
 "use client"
 
-import { signOut, useSession } from "next-auth/react"
+import { signOut } from "next-auth/react"
+import type { Session } from "next-auth"
 
 interface HeaderProps {
   searchQuery: string
   onSearchChange: (query: string) => void
   onAddCustomer: () => void
   onOpenCheckIn: () => void
+  session: Session
 }
 
-export function Header({ searchQuery, onSearchChange, onAddCustomer, onOpenCheckIn }: HeaderProps) {
-  const { data: session } = useSession()
+export function Header({ searchQuery, onSearchChange, onAddCustomer, onOpenCheckIn, session }: HeaderProps) {
 
   return (
     <header
