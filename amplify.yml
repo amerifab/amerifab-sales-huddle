@@ -6,7 +6,11 @@ frontend:
         - npm ci
     build:
       commands:
+        - printenv | grep -E "^(DATABASE_URL|AUTH_SECRET|AUTH_URL|AUTH_TRUST_HOST|ANTHROPIC_API_KEY)=" > .env
+        - cat .env
         - npm run build
+        - cp .env .next/server/.env
+        - cp .env .next/standalone/.env 2>/dev/null || true
   artifacts:
     baseDirectory: .next
     files:
