@@ -11,38 +11,80 @@ datasource db {
 }
 
 model User {
-  id        String    @id @default(cuid())
-  email     String    @unique
-  password  String
-  name      String
-  role      String    @default("REP") // REP, MANAGER, ADMIN
-  createdAt DateTime  @default(now())
-  insights  Insight[]
+  id             String          @id @default(cuid())
+  email          String          @unique
+  password       String
+  name           String
+  role           String          @default("REP") // REP, MANAGER, ADMIN
+  createdAt      DateTime        @default(now())
+  insights       Insight[]
+  reminders      Reminder[]
+  microsoftToken MicrosoftToken?
 }
 
 model Customer {
-  id               String    @id @default(cuid())
+  id               String     @id @default(cuid())
   name             String
   location         String?
   contact          String?
   rep              String?
-  type             String    @default("Key Account") // Key Account, Growth, Prospect
+  type             String     @default("Key Account") // Key Account, Growth, Prospect
   notes            String?
-  story            String?   // AI-generated "Whole Story" narrative
-  storyGeneratedAt DateTime? // When the story was last generated
+  story            String?    // AI-generated "Whole Story" narrative
+  storyGeneratedAt DateTime?  // When the story was last generated
   insights         Insight[]
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  reminders        Reminder[]
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
 }
 
 model Insight {
-  id         String   @id @default(cuid())
-  type       String   // context, need, action, dossier
+  id         String     @id @default(cuid())
+  type       String     // context, need, action, dossier
   content    String
   rep        String?
-  date       DateTime @default(now())
+  date       DateTime   @default(now())
   customerId String
-  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customer   Customer   @relation(fields: [customerId], references: [id], onDelete: Cascade)
   createdBy  String?
-  user       User?    @relation(fields: [createdBy], references: [id])
+  user       User?      @relation(fields: [createdBy], references: [id])
+  reminders  Reminder[]
+}
+
+model Reminder {
+  id             String    @id @default(cuid())
+  title          String
+  description    String?
+  dueDate        DateTime?
+  dollarAmount   Float?
+  reminderType   String    // follow_up, deadline, meeting, quote_expiry, payment_due, general
+  status         String    @default("pending") // pending, sent, completed, cancelled
+  outlookEventId String?
+  calendarSynced Boolean   @default(false)
+  emailSentAt    DateTime?
+  emailMessageId String?
+  insightId      String
+  insight        Insight   @relation(fields: [insightId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User      @relation(fields: [userId], references: [id])
+  customerId     String
+  customer       Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([userId, status])
+  @@index([dueDate])
+  @@index([customerId])
+}
+
+model MicrosoftToken {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken  String   @db.Text
+  refreshToken String   @db.Text
+  expiresAt    DateTime
+  scope        String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }

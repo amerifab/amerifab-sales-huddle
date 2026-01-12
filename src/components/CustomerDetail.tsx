@@ -4,6 +4,7 @@ import { useState } from "react"
 import { InsightTimeline } from "./InsightTimeline"
 import { StatsRow } from "./StatsRow"
 import { WholeStory } from "./WholeStory"
+import { RemindersList } from "./RemindersList"
 import type { CustomerWithInsights } from "@/types"
 
 interface CustomerDetailProps {
@@ -18,7 +19,7 @@ interface CustomerDetailProps {
   currentUserRole?: string
 }
 
-type Tab = "insights" | "story" | "profile" | "export"
+type Tab = "insights" | "reminders" | "story" | "profile" | "export"
 
 export function CustomerDetail({
   customer,
@@ -35,6 +36,7 @@ export function CustomerDetail({
 
   const tabs: { id: Tab; label: string }[] = [
     { id: "insights", label: "Insights Timeline" },
+    { id: "reminders", label: "Reminders" },
     { id: "story", label: "The Whole Story" },
     { id: "profile", label: "Profile" },
     { id: "export", label: "Export" },
@@ -130,6 +132,8 @@ export function CustomerDetail({
             />
           </>
         )}
+
+        {activeTab === "reminders" && <RemindersList customerId={customer.id} />}
 
         {activeTab === "story" && <WholeStory customer={customer} />}
 
