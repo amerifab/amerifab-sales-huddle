@@ -7,11 +7,10 @@ interface HeaderProps {
   searchQuery: string
   onSearchChange: (query: string) => void
   onAddCustomer: () => void
-  onOpenCheckIn: () => void
   session: Session
 }
 
-export function Header({ searchQuery, onSearchChange, onAddCustomer, onOpenCheckIn, session }: HeaderProps) {
+export function Header({ searchQuery, onSearchChange, onAddCustomer, session }: HeaderProps) {
 
   return (
     <header
@@ -39,7 +38,7 @@ export function Header({ searchQuery, onSearchChange, onAddCustomer, onOpenCheck
                 boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
               }}
             >
-              <span style={{ color: "#1a365d", fontWeight: "bold", fontSize: "18px" }}>AF</span>
+              <span style={{ color: "#1a365d", fontWeight: "bold", fontSize: "16px" }}>AFI</span>
             </div>
             <div>
               <h1 style={{ fontSize: "18px", fontWeight: 600, color: "white", margin: 0 }}>Sales Huddle</h1>
@@ -73,25 +72,6 @@ export function Header({ searchQuery, onSearchChange, onAddCustomer, onOpenCheck
                 }}
               />
             </div>
-
-            <button
-              onClick={onOpenCheckIn}
-              style={{
-                padding: "12px 20px",
-                background: "rgba(255,255,255,0.15)",
-                border: "1px solid rgba(255,255,255,0.3)",
-                borderRadius: "8px",
-                color: "white",
-                fontSize: "14px",
-                fontWeight: 500,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-              }}
-            >
-              <span>&#128203;</span> Sales Huddle
-            </button>
 
             <button
               onClick={onAddCustomer}

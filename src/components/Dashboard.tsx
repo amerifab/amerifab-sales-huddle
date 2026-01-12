@@ -248,7 +248,6 @@ export function Dashboard({ session }: DashboardProps) {
           setEditingCustomer(null)
           setIsAddCustomerOpen(true)
         }}
-        onOpenCheckIn={() => setIsCheckInOpen(true)}
         session={session}
       />
 
