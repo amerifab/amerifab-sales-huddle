@@ -93,9 +93,9 @@ export function Sidebar({ customers, selectedCustomerId, onSelectCustomer, isLoa
                   style={{
                     fontSize: "12px",
                     padding: "4px 10px",
-                    background: "#edf2f7",
+                    background: "#805ad5",
                     borderRadius: "4px",
-                    color: "#4a5568",
+                    color: "white",
                   }}
                 >
                   {customer.rep || "Unassigned"}
@@ -118,9 +118,9 @@ export function Sidebar({ customers, selectedCustomerId, onSelectCustomer, isLoa
                     style={{
                       fontSize: "12px",
                       padding: "4px 10px",
-                      background: "#805ad5",
+                      background: "#edf2f7",
                       borderRadius: "4px",
-                      color: "white",
+                      color: "#4a5568",
                       fontWeight: 500,
                     }}
                   >
