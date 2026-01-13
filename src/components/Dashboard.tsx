@@ -66,6 +66,7 @@ export function Dashboard({ session }: DashboardProps) {
     const filtered = customers.filter(
       (c) =>
         c.name.toLowerCase().includes(query) ||
+        c.parentCompany?.toLowerCase().includes(query) ||
         c.location?.toLowerCase().includes(query) ||
         c.rep?.toLowerCase().includes(query) ||
         c.insights?.some((i) => i.content.toLowerCase().includes(query))
