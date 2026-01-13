@@ -25,6 +25,7 @@ model User {
 model Customer {
   id               String     @id @default(cuid())
   name             String
+  parentCompany    String?    // Corporate parent (e.g., "Nucor", "SDI") - displays as "Parent - Name"
   location         String?
   contact          String?
   rep              String?

@@ -13,6 +13,7 @@ interface CustomerInsight {
 
 interface CustomerData {
   name: string
+  parentCompany?: string | null
   location?: string
   contact?: string
   rep?: string
@@ -32,10 +33,15 @@ export async function generateCustomerStory(customer: CustomerData): Promise<str
   const formatInsights = (insights: CustomerInsight[]) =>
     insights.map((i) => `- ${i.content} (${i.rep || "Unknown"}, ${new Date(i.date).toLocaleDateString()})`).join("\n")
 
+  // Generate display name for the customer
+  const displayName = customer.parentCompany
+    ? `${customer.parentCompany} - ${customer.name}`
+    : customer.name
+
   const prompt = `You are a strategic sales analyst helping AmeriFab Inc., a steel fabrication company, understand their customers deeply. Your goal is to synthesize customer intelligence into an actionable narrative.
 
 CUSTOMER PROFILE:
-- Company: ${customer.name}
+- Company: ${displayName}${customer.parentCompany ? `\n- Parent Company: ${customer.parentCompany}\n- Site/Mill: ${customer.name}` : ""}
 - Location: ${customer.location || "Unknown"}
 - Primary Contact: ${customer.contact || "Unknown"}
 - Assigned Rep: ${customer.rep || "Unassigned"}
@@ -96,6 +102,7 @@ Write in a professional but warm tone. Be specific and actionable. If there's li
 
 interface UpdateStoryData {
   customerName: string
+  parentCompany?: string | null
   existingStory: string
   newInsights: CustomerInsight[]
 }
@@ -104,9 +111,14 @@ export async function updateCustomerStory(data: UpdateStoryData): Promise<string
   const formatInsights = (insights: CustomerInsight[]) =>
     insights.map((i) => `- [${i.type.toUpperCase()}] ${i.content} (${i.rep || "Unknown"}, ${new Date(i.date).toLocaleDateString()})`).join("\n")
 
+  // Generate display name for the customer
+  const displayName = data.parentCompany
+    ? `${data.parentCompany} - ${data.customerName}`
+    : data.customerName
+
   const prompt = `You are a strategic sales analyst helping AmeriFab Inc. maintain customer intelligence narratives.
 
-CUSTOMER: ${data.customerName}
+CUSTOMER: ${displayName}
 
 EXISTING STORY:
 ${data.existingStory}

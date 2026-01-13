@@ -114,10 +114,11 @@ async function processRemindersInBackground(
 }
 
 // Helper to update story in background (non-blocking)
-async function updateStoryInBackground(customerId: string, customerName: string, existingStory: string, newInsights: Array<{ type: string; content: string; rep?: string }>) {
+async function updateStoryInBackground(customerId: string, customerName: string, parentCompany: string | null, existingStory: string, newInsights: Array<{ type: string; content: string; rep?: string }>) {
   try {
     const updatedStory = await updateCustomerStory({
       customerName,
+      parentCompany,
       existingStory,
       newInsights: newInsights.map(i => ({
         type: i.type,
@@ -197,7 +198,7 @@ export async function POST(
 
       // Auto-update story if one exists (non-blocking)
       if (customer.story && process.env.ANTHROPIC_API_KEY) {
-        updateStoryInBackground(customerId, customer.name, customer.story, newInsights)
+        updateStoryInBackground(customerId, customer.name, customer.parentCompany, customer.story, newInsights)
       }
 
       // Process reminders for batch insights (non-blocking)
@@ -250,7 +251,7 @@ export async function POST(
 
     // Auto-update story if one exists (non-blocking)
     if (customer.story && process.env.ANTHROPIC_API_KEY) {
-      updateStoryInBackground(customerId, customer.name, customer.story, [{ type, content: content.trim(), rep }])
+      updateStoryInBackground(customerId, customer.name, customer.parentCompany, customer.story, [{ type, content: content.trim(), rep }])
     }
 
     // Process reminders for single insight (non-blocking)

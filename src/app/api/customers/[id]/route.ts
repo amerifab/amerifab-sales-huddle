@@ -48,7 +48,7 @@ export async function PUT(
 
     const { id } = await params
     const body = await request.json()
-    const { name, location, contact, rep, type, notes } = body
+    const { name, parentCompany, location, contact, rep, type, notes } = body
 
     if (!name?.trim()) {
       return NextResponse.json({ error: "Name is required" }, { status: 400 })
@@ -58,6 +58,7 @@ export async function PUT(
       where: { id },
       data: {
         name: name.trim(),
+        parentCompany: parentCompany?.trim() || null,
         location: location?.trim() || null,
         contact: contact?.trim() || null,
         rep: rep || null,

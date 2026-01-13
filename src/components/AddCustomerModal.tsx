@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { Modal } from "./ui"
 import { REPS, ACCOUNT_TYPES, type CustomerWithInsights } from "@/types"
+import { COMMON_PARENT_COMPANIES } from "@/lib/customer-utils"
 
 interface AddCustomerModalProps {
   isOpen: boolean
@@ -13,6 +14,7 @@ interface AddCustomerModalProps {
 
 export interface CustomerFormData {
   name: string
+  parentCompany: string
   location: string
   contact: string
   rep: string
@@ -35,6 +37,7 @@ export function AddCustomerModal({
 }: AddCustomerModalProps) {
   const [formData, setFormData] = useState<CustomerFormData>({
     name: "",
+    parentCompany: "",
     location: "",
     contact: "",
     rep: "",
@@ -47,6 +50,7 @@ export function AddCustomerModal({
     if (editingCustomer) {
       setFormData({
         name: editingCustomer.name,
+        parentCompany: editingCustomer.parentCompany || "",
         location: editingCustomer.location || "",
         contact: editingCustomer.contact || "",
         rep: editingCustomer.rep || "",
@@ -56,6 +60,7 @@ export function AddCustomerModal({
     } else {
       setFormData({
         name: "",
+        parentCompany: "",
         location: "",
         contact: "",
         rep: "",
@@ -135,12 +140,33 @@ export function AddCustomerModal({
       size="md"
     >
       <div style={{ padding: "28px 32px" }}>
-        {/* Company Name */}
+        {/* Parent Company */}
         <div style={{ marginBottom: "20px" }}>
-          <label style={labelStyle}>Company Name *</label>
+          <label style={labelStyle}>Parent Company (Optional)</label>
           <input
             type="text"
-            placeholder="e.g., Nucor Steel"
+            list="parent-companies"
+            placeholder="e.g., Nucor, SDI, Gerdau (leave blank for standalone)"
+            value={formData.parentCompany}
+            onChange={(e) => setFormData({ ...formData, parentCompany: e.target.value })}
+            style={inputStyle}
+          />
+          <datalist id="parent-companies">
+            {COMMON_PARENT_COMPANIES.map((company) => (
+              <option key={company} value={company} />
+            ))}
+          </datalist>
+          <p style={{ fontSize: "12px", color: "#718096", marginTop: "6px" }}>
+            Corporate parent — displays as &quot;Parent - Name&quot;
+          </p>
+        </div>
+
+        {/* Company/Mill Name */}
+        <div style={{ marginBottom: "20px" }}>
+          <label style={labelStyle}>Company/Mill Name *</label>
+          <input
+            type="text"
+            placeholder={formData.parentCompany ? "e.g., Crawfordsville, Charlotte" : "e.g., Alta Steel, Charter Steel"}
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             style={{

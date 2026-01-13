@@ -1,6 +1,7 @@
 "use client"
 
 import type { CustomerWithInsights } from "@/types"
+import { getCustomerDisplayName } from "@/lib/customer-utils"
 
 interface SidebarProps {
   customers: CustomerWithInsights[]
@@ -81,7 +82,7 @@ export function Sidebar({ customers, selectedCustomerId, onSelectCustomer, isLoa
               }}
             >
               <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#1a202c", marginBottom: "4px" }}>
-                {customer.name}
+                {getCustomerDisplayName(customer)}
               </h3>
               <p style={{ fontSize: "13px", color: "#718096", margin: 0 }}>
                 {customer.location || "No location"}

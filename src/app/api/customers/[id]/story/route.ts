@@ -74,6 +74,7 @@ export async function POST(
 
     const story = await generateCustomerStory({
       name: customer.name,
+      parentCompany: customer.parentCompany,
       location: customer.location || undefined,
       contact: customer.contact || undefined,
       rep: customer.rep || undefined,

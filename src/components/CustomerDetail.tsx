@@ -6,6 +6,7 @@ import { StatsRow } from "./StatsRow"
 import { WholeStory } from "./WholeStory"
 import { RemindersList } from "./RemindersList"
 import type { CustomerWithInsights } from "@/types"
+import { getCustomerDisplayName } from "@/lib/customer-utils"
 
 interface CustomerDetailProps {
   customer: CustomerWithInsights
@@ -74,7 +75,7 @@ export function CustomerDetail({
       >
         <div>
           <h2 style={{ fontSize: "24px", fontWeight: 700, color: "#1a365d", margin: "0 0 6px 0" }}>
-            {customer.name}
+            {getCustomerDisplayName(customer)}
           </h2>
           <p style={{ fontSize: "14px", color: "#718096", margin: 0 }}>
             {[customer.location, customer.contact].filter(Boolean).join(" • ")}
@@ -139,6 +140,8 @@ export function CustomerDetail({
 
         {activeTab === "profile" && (
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+            <ProfileSection label="Parent Company" value={customer.parentCompany} />
+            <ProfileSection label="Company/Mill Name" value={customer.name} />
             <ProfileSection label="Location" value={customer.location} />
             <ProfileSection label="Primary Contact" value={customer.contact} />
             <ProfileSection label="Assigned Rep" value={customer.rep} />

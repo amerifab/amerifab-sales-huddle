@@ -26,6 +26,7 @@ export const INSIGHT_TYPE_CONFIG: Record<InsightType, { label: string; color: st
 export interface CustomerWithInsights {
   id: string
   name: string
+  parentCompany: string | null
   location: string | null
   contact: string | null
   rep: string | null
