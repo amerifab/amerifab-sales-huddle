@@ -55,7 +55,7 @@ export default function LoginPage() {
             style={{ padding: "48px 40px", background: "linear-gradient(135deg, #1a365d 0%, #2c5282 100%)" }}
           >
             <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-xl mb-4 shadow-lg">
-              <span className="text-2xl font-bold" style={{ color: "#1a365d" }}>AF</span>
+              <span className="text-2xl font-bold" style={{ color: "#1a365d" }}>AFI</span>
             </div>
             <h1 className="text-2xl font-bold text-white mb-1">Sales Huddle</h1>
             <p className="text-sm text-white/70 uppercase tracking-widest">AmeriFab Inc.</p>
