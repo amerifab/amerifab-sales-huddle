@@ -48,11 +48,16 @@ export async function PUT(
 
     const { id } = await params
     const body = await request.json()
-    const { name, parentCompany, location, contact, rep, type, notes } = body
+    const { name, parentCompany, location, contact, rep, type, notes, revenue } = body
 
     if (!name?.trim()) {
       return NextResponse.json({ error: "Name is required" }, { status: 400 })
     }
+
+    // Parse revenue: remove commas and convert to number
+    const parsedRevenue = revenue
+      ? parseFloat(String(revenue).replace(/,/g, ""))
+      : null
 
     const customer = await prisma.customer.update({
       where: { id },
@@ -64,6 +69,7 @@ export async function PUT(
         rep: rep || null,
         type: type || "Key Account",
         notes: notes?.trim() || null,
+        revenue: parsedRevenue && !isNaN(parsedRevenue) ? parsedRevenue : null,
       },
       include: {
         insights: {

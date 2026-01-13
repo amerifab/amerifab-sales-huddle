@@ -31,6 +31,7 @@ model Customer {
   rep              String?
   type             String     @default("Key Account") // Key Account, Growth, Prospect
   notes            String?
+  revenue          Float?     // Annual revenue in dollars
   story            String?    // AI-generated "Whole Story" narrative
   storyGeneratedAt DateTime?  // When the story was last generated
   insights         Insight[]

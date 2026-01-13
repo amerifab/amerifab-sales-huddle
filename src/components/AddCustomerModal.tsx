@@ -20,6 +20,7 @@ export interface CustomerFormData {
   rep: string
   type: string
   notes: string
+  revenue: string
 }
 
 const repOptions = [
@@ -43,6 +44,7 @@ export function AddCustomerModal({
     rep: "",
     type: "Key Account",
     notes: "",
+    revenue: "",
   })
   const [error, setError] = useState("")
 
@@ -56,6 +58,7 @@ export function AddCustomerModal({
         rep: editingCustomer.rep || "",
         type: editingCustomer.type,
         notes: editingCustomer.notes || "",
+        revenue: editingCustomer.revenue?.toString() || "",
       })
     } else {
       setFormData({
@@ -66,6 +69,7 @@ export function AddCustomerModal({
         rep: "",
         type: "Key Account",
         notes: "",
+        revenue: "",
       })
     }
     setError("")
@@ -233,6 +237,42 @@ export function AddCustomerModal({
               ))}
             </select>
           </div>
+        </div>
+
+        {/* Annual Revenue */}
+        <div style={{ marginBottom: "20px" }}>
+          <label style={labelStyle}>Annual Revenue (Optional)</label>
+          <div style={{ position: "relative" }}>
+            <span
+              style={{
+                position: "absolute",
+                left: "16px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                color: "#718096",
+                fontSize: "15px",
+              }}
+            >
+              $
+            </span>
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder="e.g., 5000000"
+              value={formData.revenue}
+              onChange={(e) => {
+                const value = e.target.value.replace(/[^0-9,]/g, "")
+                setFormData({ ...formData, revenue: value })
+              }}
+              style={{
+                ...inputStyle,
+                paddingLeft: "32px",
+              }}
+            />
+          </div>
+          <p style={{ fontSize: "12px", color: "#718096", marginTop: "6px" }}>
+            Previous fiscal year revenue in dollars
+          </p>
         </div>
 
         {/* Notes */}

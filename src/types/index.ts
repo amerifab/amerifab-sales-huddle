@@ -32,6 +32,7 @@ export interface CustomerWithInsights {
   rep: string | null
   type: string
   notes: string | null
+  revenue: number | null
   createdAt: Date
   updatedAt: Date
   insights: InsightData[]

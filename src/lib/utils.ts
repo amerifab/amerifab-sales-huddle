@@ -25,3 +25,10 @@ export function getWeekStart(): string {
   const weekStart = new Date(today.setDate(diff))
   return weekStart.toLocaleDateString("en-US")
 }
+
+export function formatRevenue(amount: number | null | undefined): string | null {
+  if (amount === null || amount === undefined) {
+    return null
+  }
+  return "$" + amount.toLocaleString("en-US", { maximumFractionDigits: 0 })
+}

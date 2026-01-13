@@ -2,6 +2,7 @@
 
 import type { CustomerWithInsights } from "@/types"
 import { getCustomerDisplayName } from "@/lib/customer-utils"
+import { formatRevenue } from "@/lib/utils"
 
 interface SidebarProps {
   customers: CustomerWithInsights[]
@@ -111,6 +112,22 @@ export function Sidebar({ customers, selectedCustomerId, onSelectCustomer, isLoa
                   {customer.insights?.length || 0} insights
                 </span>
               </div>
+              {customer.revenue && (
+                <div style={{ marginTop: "8px" }}>
+                  <span
+                    style={{
+                      fontSize: "12px",
+                      padding: "4px 10px",
+                      background: "#805ad5",
+                      borderRadius: "4px",
+                      color: "white",
+                      fontWeight: 500,
+                    }}
+                  >
+                    {formatRevenue(customer.revenue)} Revenue
+                  </span>
+                </div>
+              )}
             </div>
           ))
         )}
