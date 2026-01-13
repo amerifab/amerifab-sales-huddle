@@ -61,6 +61,7 @@ model Reminder {
   dollarAmount   Float?
   reminderType   String    // follow_up, deadline, meeting, quote_expiry, payment_due, general
   status         String    @default("pending") // pending, sent, completed, cancelled
+  completedAt    DateTime?
   outlookEventId String?
   calendarSynced Boolean   @default(false)
   emailSentAt    DateTime?

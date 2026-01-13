@@ -10,6 +10,7 @@ interface Reminder {
   dollarAmount: number | null
   reminderType: string
   status: string
+  completedAt: string | null
   calendarSynced: boolean
   emailSentAt: string | null
   customer: { id: string; name: string }
@@ -18,6 +19,7 @@ interface Reminder {
 
 interface RemindersListProps {
   customerId?: string
+  currentUserRole?: string
 }
 
 const typeColors: Record<string, string> = {
@@ -38,7 +40,8 @@ const typeLabels: Record<string, string> = {
   general: "General",
 }
 
-export function RemindersList({ customerId }: RemindersListProps) {
+export function RemindersList({ customerId, currentUserRole }: RemindersListProps) {
+  const isAdmin = currentUserRole === "ADMIN"
   const [reminders, setReminders] = useState<Reminder[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [syncingId, setSyncingId] = useState<string | null>(null)
@@ -187,6 +190,7 @@ export function RemindersList({ customerId }: RemindersListProps) {
           isSyncing={syncingId === reminder.id}
           formatDate={formatDate}
           formatAmount={formatAmount}
+          isAdmin={isAdmin}
         />
       ))}
 
@@ -216,6 +220,7 @@ export function RemindersList({ customerId }: RemindersListProps) {
               isSyncing={syncingId === reminder.id}
               formatDate={formatDate}
               formatAmount={formatAmount}
+              isAdmin={isAdmin}
             />
           ))}
         </>
@@ -232,6 +237,7 @@ function ReminderCard({
   isSyncing,
   formatDate,
   formatAmount,
+  isAdmin,
 }: {
   reminder: Reminder
   onComplete: (id: string) => void
@@ -240,6 +246,7 @@ function ReminderCard({
   isSyncing: boolean
   formatDate: (date: string) => string
   formatAmount: (amount: number) => string
+  isAdmin: boolean
 }) {
   const isCompleted = reminder.status === "completed"
   const isPastDue = reminder.dueDate && new Date(reminder.dueDate) < new Date() && !isCompleted
@@ -303,6 +310,13 @@ function ReminderCard({
       >
         {reminder.title}
       </h4>
+
+      {/* Completion Date */}
+      {isCompleted && reminder.completedAt && (
+        <p style={{ margin: "0 0 8px 0", fontSize: "12px", color: "#38a169", fontWeight: 500 }}>
+          Completed on {formatDate(reminder.completedAt)}
+        </p>
+      )}
 
       {/* Description */}
       {reminder.description && (
@@ -376,21 +390,23 @@ function ReminderCard({
             )}
           </>
         )}
-        <button
-          onClick={() => onDelete(reminder.id)}
-          style={{
-            padding: "6px 12px",
-            fontSize: "12px",
-            fontWeight: 500,
-            background: "white",
-            color: "#e53e3e",
-            border: "1px solid #e2e8f0",
-            borderRadius: "6px",
-            cursor: "pointer",
-          }}
-        >
-          Delete
-        </button>
+        {isAdmin && (
+          <button
+            onClick={() => onDelete(reminder.id)}
+            style={{
+              padding: "6px 12px",
+              fontSize: "12px",
+              fontWeight: 500,
+              background: "white",
+              color: "#e53e3e",
+              border: "1px solid #e2e8f0",
+              borderRadius: "6px",
+              cursor: "pointer",
+            }}
+          >
+            Delete
+          </button>
+        )}
       </div>
     </div>
   )

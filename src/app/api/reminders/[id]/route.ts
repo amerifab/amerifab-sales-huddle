@@ -56,7 +56,17 @@ export async function PATCH(
   if (title !== undefined) updateData.title = title
   if (description !== undefined) updateData.description = description
   if (dueDate !== undefined) updateData.dueDate = dueDate ? new Date(dueDate) : null
-  if (status !== undefined) updateData.status = status
+  if (status !== undefined) {
+    updateData.status = status
+    // Set completedAt when marking as completed
+    if (status === "completed" && existing.status !== "completed") {
+      updateData.completedAt = new Date()
+    }
+    // Clear completedAt if un-completing
+    if (status !== "completed" && existing.status === "completed") {
+      updateData.completedAt = null
+    }
+  }
 
   const reminder = await prisma.reminder.update({
     where: { id },
@@ -69,7 +79,7 @@ export async function PATCH(
   return NextResponse.json(reminder)
 }
 
-// DELETE /api/reminders/[id] - Delete reminder
+// DELETE /api/reminders/[id] - Delete reminder (Admin only)
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -79,10 +89,15 @@ export async function DELETE(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
+  // Only Admin can delete reminders
+  if (session.user.role !== "ADMIN") {
+    return NextResponse.json({ error: "Only administrators can delete reminders" }, { status: 403 })
+  }
+
   const { id } = await params
 
-  const reminder = await prisma.reminder.findFirst({
-    where: { id, userId: session.user.id },
+  const reminder = await prisma.reminder.findUnique({
+    where: { id },
   })
 
   if (!reminder) {

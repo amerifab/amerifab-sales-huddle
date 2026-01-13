@@ -140,7 +140,7 @@ export function CustomerDetail({
           </>
         )}
 
-        {activeTab === "reminders" && <RemindersList customerId={customer.id} />}
+        {activeTab === "reminders" && <RemindersList customerId={customer.id} currentUserRole={currentUserRole} />}
 
         {activeTab === "story" && <WholeStory customer={customer} />}
 
