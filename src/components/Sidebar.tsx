@@ -82,13 +82,10 @@ export function Sidebar({ customers, selectedCustomerId, onSelectCustomer, isLoa
                 }
               }}
             >
-              <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#1a202c", marginBottom: "4px" }}>
+              <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#1a202c", marginBottom: "8px" }}>
                 {getCustomerDisplayName(customer)}
               </h3>
-              <p style={{ fontSize: "13px", color: "#718096", margin: 0 }}>
-                {customer.location || "No location"}
-              </p>
-              <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
+              <div style={{ display: "flex", gap: "8px" }}>
                 <span
                   style={{
                     fontSize: "12px",
