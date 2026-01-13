@@ -7,6 +7,7 @@ import { WholeStory } from "./WholeStory"
 import { RemindersList } from "./RemindersList"
 import type { CustomerWithInsights } from "@/types"
 import { getCustomerDisplayName } from "@/lib/customer-utils"
+import { formatRevenue } from "@/lib/utils"
 
 interface CustomerDetailProps {
   customer: CustomerWithInsights
@@ -80,6 +81,11 @@ export function CustomerDetail({
           <p style={{ fontSize: "14px", color: "#718096", margin: 0 }}>
             {[customer.location, customer.contact].filter(Boolean).join(" • ")}
           </p>
+          {customer.revenue && (
+            <p style={{ fontSize: "14px", color: "#805ad5", fontWeight: 500, margin: "6px 0 0 0" }}>
+              2025 Revenue: {formatRevenue(customer.revenue)}
+            </p>
+          )}
         </div>
         <div style={{ display: "flex", gap: "10px" }}>
           <button onClick={onEdit} style={buttonStyle}>
@@ -146,6 +152,7 @@ export function CustomerDetail({
             <ProfileSection label="Primary Contact" value={customer.contact} />
             <ProfileSection label="Assigned Rep" value={customer.rep} />
             <ProfileSection label="Account Type" value={customer.type} />
+            <ProfileSection label="2025 Revenue" value={formatRevenue(customer.revenue)} />
             <ProfileSection
               label="Notes"
               value={customer.notes}
