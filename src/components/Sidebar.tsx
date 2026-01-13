@@ -124,7 +124,7 @@ export function Sidebar({ customers, selectedCustomerId, onSelectCustomer, isLoa
                       fontWeight: 500,
                     }}
                   >
-                    {formatRevenue(customer.revenue)} Revenue
+                    2025 Revenue: {formatRevenue(customer.revenue)}
                   </span>
                 </div>
               )}
